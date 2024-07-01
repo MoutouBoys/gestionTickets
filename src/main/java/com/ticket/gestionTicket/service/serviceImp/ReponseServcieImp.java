@@ -30,7 +30,7 @@ public class ReponseServcieImp implements ReponseService {
         return reponseRepository.findById(id)
                 .map(p->{
                     p.setReponse(reponse.getReponse());
-                    p.setCommentaire(reponse.getCommentaire());
+                    p.setTickets(reponse.getTickets());
                     p.setDateEnvoie(reponse.getDateEnvoie());
                     p.setIdFormateur(reponse.getIdFormateur());
                     return reponseRepository.save(p);

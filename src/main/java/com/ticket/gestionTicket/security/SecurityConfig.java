@@ -1,59 +1,65 @@
 package com.ticket.gestionTicket.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
+@AllArgsConstructor
 public class SecurityConfig {
 
-    @Autowired
-    private UserDetailsService userDetailsService;
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable()) // Désactiver CSRF pour simplifier les tests avec Postman
-                .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/swagger-ui.html", "/v3/api-docs/**", "/swagger-ui/**").permitAll() // Permettre l'accès à Swagger UI
-                        .requestMatchers("/utilisateur/**").hasAnyRole("ADMIN", "formateur")
-                        .requestMatchers("/administrateur/**").hasRole("formateur")
-                        //.requestMatchers("mail/send").hasRole("ADMIN")
-                        //.requestMatchers("/apprenant/**").hasAnyRole("ADMIN", "formateur") // Accès restreint aux administrateurs et formateurs
-                        .requestMatchers("/formateur/**").hasRole("ADMIN")
-                        .requestMatchers("/notification/**").hasAnyRole("ADMIN", "formateur") // Accès restreint aux administrateurs et formateurs
-                        .requestMatchers("/ticket/**").hasAnyRole("APPRENANT","ADMIN", "formateur")
-                        .anyRequest().authenticated() // Toutes les autres requêtes nécessitent une authentification
-                )
-                .httpBasic(withDefaults()); // Utiliser l'authentification HTTP Basic
+    private final UserDetailsService customUserDetailsService;
 
-        return http.build();
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/utilisateur/**","/role/**","/prioriter/**","/etat/**","/categorie/**").hasRole("ADMIN");
+                    auth.requestMatchers("/baseconnaissance/create","/baseconnaissance/update/","/baseconnaissance/delete/").hasAnyRole("ADMIN","FORMATEUR");
+                    auth.requestMatchers("/baseconnaissance/read").authenticated();
+                    auth.requestMatchers("/apprenant/**").hasAnyRole("ADMIN","FORMATEUR");
+                    auth.requestMatchers("/ticket/create","/ticket/delete/","/ticket/update/").hasRole("APPRENANT");
+                    auth.requestMatchers("/categorie/**").hasRole("ADMIN");
+                    auth.requestMatchers("/administrateur/**").hasRole("ADMIN");
+                    auth.requestMatchers("ticket/search").hasRole("ADMIN");
+                    auth.requestMatchers("/utilisateur/users/search/**").hasRole("ADMIN");
+                    auth.requestMatchers("/ticket/pris_en_charge/**", "/ticket/resoudre/**").hasRole("FORMATEUR");
+
+                    auth.anyRequest().authenticated();
+                })
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable())
+                .httpBasic(httpBasic -> httpBasic.realmName("AssistantTicket"));
+
+        return httpSecurity.build();
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return userDetailsService;
-    }
-    @Bean
-    public AuthenticationProvider authenticationProvider(){
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public AuthenticationProvider authenticationProvider(BCryptPasswordEncoder bCryptPasswordEncoder) {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(bCryptPasswordEncoder);
+        return daoAuthenticationProvider;
+    }
+
+    @Bean
+    public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

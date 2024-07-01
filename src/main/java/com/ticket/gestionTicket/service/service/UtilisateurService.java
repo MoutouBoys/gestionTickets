@@ -9,4 +9,5 @@ public interface UtilisateurService {
     List<Utilisateur> lire();
     Utilisateur modifier(Long id, Utilisateur user);
     String supprimer(Long id);
+    List<Utilisateur> searchUsers(String query);
 }

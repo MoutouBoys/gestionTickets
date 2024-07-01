@@ -17,6 +17,7 @@ public class ApprenantServiceImp implements ApprenantService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Override
     public Apprenant creer(Apprenant apprenant) {
         apprenant.setMotDePasse(passwordEncoder.encode(apprenant.getMotDePasse()));
@@ -26,7 +27,7 @@ public class ApprenantServiceImp implements ApprenantService {
     @Override
     public Apprenant modifier(Long id, Apprenant apprenant) {
         return apprenantRepository.findById(id)
-                .map(p ->{
+                .map(p -> {
                     p.setNom(apprenant.getNom());
                     p.setEmail(apprenant.getEmail());
                     p.setMotDePasse(passwordEncoder.encode(apprenant.getMotDePasse()));
@@ -35,7 +36,7 @@ public class ApprenantServiceImp implements ApprenantService {
                     p.setProgres(apprenant.getProgres());
                     p.setTicketsSoumis(apprenant.getTicketsSoumis());
                     return apprenantRepository.save(p);
-                }).orElseThrow(()->new RuntimeException("Apprenant n'existe pas!"));
+                }).orElseThrow(() -> new RuntimeException("Apprenant n'existe pas!"));
     }
 
     @Override

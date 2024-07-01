@@ -3,7 +3,6 @@ package com.ticket.gestionTicket.service.serviceImp;
 import com.ticket.gestionTicket.modele.Utilisateur;
 import com.ticket.gestionTicket.repository.UtilisateurRepository;
 import com.ticket.gestionTicket.service.service.UtilisateurService;
-import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -11,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -40,9 +40,16 @@ public class UtilisateurServiceImpl implements UtilisateurService {
     }
     @Override
     public Utilisateur creer(Utilisateur user) {
+        Optional<Utilisateur> existingUser = utilisateurRepository.findByEmail(user.getEmail());
+        if (existingUser.isPresent()) {
+            throw new RuntimeException("L'email " + user.getEmail() + " est déjà utilisé.");
+        }
         return utilisateurRepository.save(user);
     }
-
+    @Override
+    public List<Utilisateur> searchUsers(String query) {
+        return userRepository.findByNomContainingOrEmailContaining(query, query);
+    }
     @Override
     public List<Utilisateur> lire() {
         return utilisateurRepository.findAll();
