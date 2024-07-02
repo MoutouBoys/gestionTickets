@@ -19,8 +19,26 @@ public class Tickets {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(length = 200)
-    private String ticketEnvoyer;
-    private String status;
-    private Long idUtilisateur;
+    private String description;
     private Date dateEnvoie;
+    private Date dateResolution;
+
+    @ManyToOne
+    private Etat etat;
+
+    @ManyToOne
+    private Categorie categorie;
+
+    @ManyToOne
+    private Utilisateur formateur;
+
+    @ManyToOne
+    private Utilisateur apprenant;
+
+    @ManyToOne
+    private Prioriter prioriter;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Reponse reponseFormateur;
+
 }

@@ -20,6 +20,12 @@ public class BaseConnaissance{
     private String question;
     private String reponse;
     private String categorie;
-    private int idFormateur;
+    @ManyToOne
+    private Utilisateur idFormateur;
     private Date dateEnvoie;
+    @Column(length = 255)
+    private String lien;
+
+    @Column(length = 255)
+    private String pieceJointe;
 }

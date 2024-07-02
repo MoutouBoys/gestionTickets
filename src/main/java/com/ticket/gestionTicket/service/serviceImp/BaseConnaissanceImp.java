@@ -31,6 +31,8 @@ public class BaseConnaissanceImp implements BaseConnaissanceService {
                     p.setReponse(baseConnaissance.getReponse());
                     p.setIdFormateur(baseConnaissance.getIdFormateur());
                     p.setDateEnvoie(baseConnaissance.getDateEnvoie());
+                    p.setLien(baseConnaissance.getLien());
+                    p.setPieceJointe(baseConnaissance.getPieceJointe());
                     return p;
                 }).orElseThrow(()->new RuntimeException("Erreur de modification"));
     }
